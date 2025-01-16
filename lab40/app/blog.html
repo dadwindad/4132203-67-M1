@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JSON from URL to Table</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid black;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>JSON from URL to Table</h1>
+    <table id="jsonTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Post</th>
+          <th>Created At</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be dynamically inserted here -->
+        <tr id="loading">
+          <td colspan="5">Loading...</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <script>
+      function deleteRow(id) {
+        $.ajax({
+          url: "http://localhost:8080/php/blog.php",
+          type: "DELETE",
+          data: { id: id },
+          success: function (response) {
+            $(`#jsonTable tbody tr[data-id='${id}']`).remove();
+            alert("Row deleted successfully!");
+          },
+          error: function () {
+            alert("Failed to delete the row!");
+          },
+        });
+      }
+
+      $(document).ready(function () {
+        // URL of the JSON data
+        var jsonUrl = "http://localhost:8080/php/blog.php";
+
+        // Fetch the JSON data from the URL
+        $.getJSON(jsonUrl, function (json) {
+          // Remove the loading row
+          $("#loading").remove();
+
+          // Loop through each item in the JSON array
+          json.data.forEach(function (item) {
+            var tableRow = `
+                        <tr>
+                            <td>${item.id}</td>
+                            <td>${item.title}</td>
+                            <td>${item.post}</td>
+                            <td>${item.createAt}</td>
+                            <td><button onclick="alert('ID: ${item.id}')">Show ID</button>
+                                <button onclick="deleteRow(${item.id})">Delete</button>
+                                <button class="btn" data-id="${item.id}">Info</button>
+                            </td>                        
+                        
+                        </tr>
+                    `;
+            $("#jsonTable tbody").append(tableRow);
+          });
+        }).fail(function () {
+          alert("Failed to load JSON data!");
+        });
+
+        $(document).ajaxStop(function () {
+          $(".btn").click(function () {
+            var id = $(this).data("id");
+            alert("ID: " + id);
+            console.log("ID: " + id);
+          });
+        });
+
+      });
+    </script>
+  </body>
+</html>
